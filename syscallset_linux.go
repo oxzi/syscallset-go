@@ -9,10 +9,30 @@ package syscallset
 
 import (
 	"fmt"
+	"runtime"
 	"strings"
 
 	seccomp "github.com/elastic/go-seccomp-bpf"
+	"github.com/elastic/go-seccomp-bpf/arch"
 )
+
+// filterUnsupportedSyscalls from other architectures as the current one.
+func filterUnsupportedSyscalls(in []string) (out []string, err error) {
+	info, infoErr := arch.GetInfo(runtime.GOARCH)
+	if infoErr != nil {
+		err = infoErr
+		return
+	}
+
+	for _, syscall := range in {
+		if _, exist := info.SyscallNames[syscall]; !exist {
+			continue
+		}
+		out = append(out, syscall)
+	}
+
+	return
+}
 
 // unwrapSyscalls from the given syscall filter string to an array of syscalls.
 func unwrapSyscalls(syscallFilter string) (syscalls []string, err error) {
@@ -20,14 +40,22 @@ func unwrapSyscalls(syscallFilter string) (syscalls []string, err error) {
 
 	for _, obj := range strings.Split(syscallFilter, " ") {
 		if strings.HasPrefix(obj, "@") {
-			if set, exists := syscallSets[obj[1:]]; !exists {
+			// For a set, filter unsupported syscalls first.
+			set, setExist := syscallSets[obj[1:]]
+			if !setExist {
 				return nil, fmt.Errorf("syscall set %q does not exist", obj)
-			} else {
-				for _, syscall := range set {
-					syscallMap[syscall] = struct{}{}
-				}
+			}
+
+			setSupported, setSupportedErr := filterUnsupportedSyscalls(set)
+			if setSupportedErr != nil {
+				return nil, setSupportedErr
+			}
+
+			for _, syscall := range setSupported {
+				syscallMap[syscall] = struct{}{}
 			}
 		} else {
+			// Do not filter for single syscalls, as this should error.
 			syscallMap[obj] = struct{}{}
 		}
 	}
