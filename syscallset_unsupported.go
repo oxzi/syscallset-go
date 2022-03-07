@@ -1,0 +1,20 @@
+// SPDX-FileCopyrightText: 2022 Alvar Penning
+//
+// SPDX-License-Identifier: BSD-3-Clause
+
+//go:build !linux
+// +build !linux
+
+// This file is a stub for non-supported platforms.
+
+package syscallset
+
+import "errors"
+
+func LimitTo(syscallFilter string) error {
+	return errors.New("unsupported platform")
+}
+
+func LimitAndLog(syscallset string) error {
+	return errors.New("unsupported platform")
+}

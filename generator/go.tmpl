@@ -15,7 +15,7 @@
 
 // Generated based on {{ .SystemdVersionStr }}
 
-package main
+package syscallset
 
 var syscallSets = map[string][]string{
 {{- range $setName, $syscalls := .SyscallSets }}
