@@ -38,7 +38,7 @@ func filterUnsupportedSyscalls(in []string) (out []string, err error) {
 func unwrapSyscalls(syscallFilter string) (syscalls []string, err error) {
 	syscallMap := map[string]struct{}{}
 
-	for _, obj := range strings.Split(syscallFilter, " ") {
+	for _, obj := range strings.Split(strings.TrimSpace(syscallFilter), " ") {
 		if strings.HasPrefix(obj, "@") {
 			// For a set, filter unsupported syscalls first.
 			set, setExist := syscallSets[obj[1:]]
@@ -69,7 +69,7 @@ func unwrapSyscalls(syscallFilter string) (syscalls []string, err error) {
 // limit the usable syscalls by applying a seccomp-bpf filter. The given action
 // will be performed for unspecified syscalls.
 func limit(syscallFilter string, action seccomp.Action) error {
-	syscalls, err := unwrapSyscalls(syscallFilter)
+	syscalls, err := unwrapSyscalls("@default " + syscallFilter)
 	if err != nil {
 		return err
 	}

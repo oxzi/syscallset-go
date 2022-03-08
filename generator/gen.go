@@ -163,6 +163,28 @@ func syscallSetFlatten(in map[string][]string) (out map[string][]string, err err
 	return
 }
 
+// syscallSetCleanDefault from the execve syscall.
+// This syscall is obviously needed for systemd to spawn another process, but
+// otherwise would not be expected in a default set.
+func syscallSetCleanDefault(syscallSets map[string][]string) error {
+	defaultSet := syscallSets["default"]
+	pos := -1
+
+	for i := 0; i < len(defaultSet); i++ {
+		if defaultSet[i] == "execve" {
+			pos = i
+			break
+		}
+	}
+
+	if pos < 0 {
+		return fmt.Errorf("execve syscall not found in @default set")
+	}
+
+	syscallSets["default"] = append(defaultSet[:pos], defaultSet[pos+1:]...)
+	return nil
+}
+
 // systemdVersion as a multi line string to be displayed in the generated file.
 func systemdVersion() (string, error) {
 	out, err := exec.Command("systemd-analyze", "--version").Output()
@@ -180,6 +202,10 @@ func main() {
 		panic(err)
 	}
 	syscallSets, err = syscallSetFlatten(syscallSets)
+	if err != nil {
+		panic(err)
+	}
+	err = syscallSetCleanDefault(syscallSets)
 	if err != nil {
 		panic(err)
 	}

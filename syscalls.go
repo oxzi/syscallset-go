@@ -90,7 +90,6 @@ var syscallSets = map[string][]string{
 		"clock_gettime64",
 		"clock_nanosleep",
 		"clock_nanosleep_time64",
-		"execve",
 		"exit",
 		"exit_group",
 		"futex",
