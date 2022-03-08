@@ -9,5 +9,6 @@ pkgs.mkShell {
     go_1_17
     golangci-lint
     reuse
+    shellcheck
   ];
 }
