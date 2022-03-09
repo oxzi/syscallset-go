@@ -102,6 +102,17 @@ func limit(syscallFilter string, action seccomp.Action) error {
 	})
 }
 
+// IsSupported returns true if filtering syscalls through seccomp-bpf is
+// possible on this platform.
+func IsSupported() bool {
+	if !seccomp.Supported() {
+		return false
+	}
+
+	_, infoErr := arch.GetInfo(runtime.GOARCH)
+	return infoErr == nil
+}
+
 // LimitTo a subset of the available Linux syscalls using a systemd system call
 // filter string.
 //

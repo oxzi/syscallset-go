@@ -11,6 +11,10 @@ package syscallset
 
 import "errors"
 
+func IsSupported() bool {
+	return false
+}
+
 func LimitTo(syscallFilter string) error {
 	return errors.New("unsupported platform")
 }
