@@ -163,10 +163,10 @@ func syscallSetFlatten(in map[string][]string) (out map[string][]string, err err
 	return
 }
 
-// syscallSetCleanDefault from the execve syscall.
+// syscallSetMoveExecve from the default set to process.
 // This syscall is obviously needed for systemd to spawn another process, but
 // otherwise would not be expected in a default set.
-func syscallSetCleanDefault(syscallSets map[string][]string) error {
+func syscallSetMoveExecve(syscallSets map[string][]string) error {
 	defaultSet := syscallSets["default"]
 	pos := -1
 
@@ -182,6 +182,7 @@ func syscallSetCleanDefault(syscallSets map[string][]string) error {
 	}
 
 	syscallSets["default"] = append(defaultSet[:pos], defaultSet[pos+1:]...)
+	syscallSets["process"] = append(syscallSets["process"], "execve")
 	return nil
 }
 
@@ -205,7 +206,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	err = syscallSetCleanDefault(syscallSets)
+	err = syscallSetMoveExecve(syscallSets)
 	if err != nil {
 		panic(err)
 	}

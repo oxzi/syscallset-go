@@ -13,7 +13,7 @@
 // - https://github.com/systemd/systemd/blob/main/src/shared/seccomp-util.c
 // - https://github.com/systemd/systemd/blob/main/src/analyze/analyze-syscall-filter.c
 
-// Generated based on systemd 249 (249.7)
+// Generated based on systemd 250 (250.3-4-arch)
 
 package syscallset
 
@@ -82,6 +82,7 @@ var syscallSets = map[string][]string{
 		"sys_debug_setcontext",
 	},
 	"default": []string{
+		"arch_prctl",
 		"brk",
 		"cacheflush",
 		"clock_getres",
@@ -122,6 +123,7 @@ var syscallSets = map[string][]string{
 		"membarrier",
 		"mmap",
 		"mmap2",
+		"mprotect",
 		"munmap",
 		"nanosleep",
 		"pause",
@@ -379,6 +381,7 @@ var syscallSets = map[string][]string{
 		"ftruncate64",
 		"futex",
 		"futex_time64",
+		"futex_waitv",
 		"futimesat",
 		"get_kernel_syms",
 		"get_mempolicy",
@@ -476,6 +479,7 @@ var syscallSets = map[string][]string{
 		"mbind",
 		"membarrier",
 		"memfd_create",
+		"memfd_secret",
 		"memory_ordering",
 		"migrate_pages",
 		"mincore",
@@ -647,7 +651,6 @@ var syscallSets = map[string][]string{
 		"pciconfig_write",
 		"perf_event_open",
 		"perfctr",
-		"perfmonctl",
 		"personality",
 		"pidfd_getfd",
 		"pidfd_open",
@@ -667,6 +670,7 @@ var syscallSets = map[string][]string{
 		"preadv2",
 		"prlimit64",
 		"process_madvise",
+		"process_mrelease",
 		"process_vm_readv",
 		"process_vm_writev",
 		"pselect6",
@@ -677,7 +681,7 @@ var syscallSets = map[string][]string{
 		"pwritev2",
 		"query_module",
 		"quotactl",
-		"quotactl_path",
+		"quotactl_fd",
 		"read",
 		"readahead",
 		"readdir",
@@ -1002,7 +1006,6 @@ var syscallSets = map[string][]string{
 		"vhangup",
 	},
 	"process": []string{
-		"arch_prctl",
 		"capget",
 		"clone",
 		"clone3",
@@ -1025,6 +1028,7 @@ var syscallSets = map[string][]string{
 		"wait4",
 		"waitid",
 		"waitpid",
+		"execve",
 	},
 	"raw-io": []string{
 		"ioperm",
@@ -1132,6 +1136,7 @@ var syscallSets = map[string][]string{
 		"fchownat",
 		"lchown",
 		"lchown32",
+		"arch_prctl",
 		"brk",
 		"cacheflush",
 		"clock_getres",
@@ -1173,6 +1178,7 @@ var syscallSets = map[string][]string{
 		"membarrier",
 		"mmap",
 		"mmap2",
+		"mprotect",
 		"munmap",
 		"nanosleep",
 		"pause",
@@ -1340,7 +1346,6 @@ var syscallSets = map[string][]string{
 		"socket",
 		"socketcall",
 		"socketpair",
-		"arch_prctl",
 		"capget",
 		"clone",
 		"clone3",
@@ -1439,7 +1444,6 @@ var syscallSets = map[string][]string{
 		"ioprio_get",
 		"kcmp",
 		"madvise",
-		"mprotect",
 		"mremap",
 		"name_to_handle_at",
 		"oldolduname",
