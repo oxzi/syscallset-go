@@ -39,24 +39,37 @@ func unwrapSyscalls(syscallFilter string) (syscalls []string, err error) {
 	syscallMap := map[string]struct{}{}
 
 	for _, obj := range strings.Split(strings.TrimSpace(syscallFilter), " ") {
-		if strings.HasPrefix(obj, "@") {
+		// If an object is prefixed by "~", it will be removed from the previously
+		// allowed syscalls. By default, new syscalls are added to the set.
+		isAdditive := true
+		if obj[0] == '~' {
+			isAdditive = false
+			obj = obj[1:]
+		}
+
+		var tmpSyscalls []string
+
+		if obj[0] == '@' {
 			// For a set, filter unsupported syscalls first.
 			set, setExist := syscallSets[obj[1:]]
 			if !setExist {
 				return nil, fmt.Errorf("syscall set %q does not exist", obj)
 			}
 
-			setSupported, setSupportedErr := filterUnsupportedSyscalls(set)
-			if setSupportedErr != nil {
-				return nil, setSupportedErr
-			}
-
-			for _, syscall := range setSupported {
-				syscallMap[syscall] = struct{}{}
+			if tmpSyscalls, err = filterUnsupportedSyscalls(set); err != nil {
+				return
 			}
 		} else {
 			// Do not filter for single syscalls, as this should error.
-			syscallMap[obj] = struct{}{}
+			tmpSyscalls = []string{obj}
+		}
+
+		for _, syscall := range tmpSyscalls {
+			if isAdditive {
+				syscallMap[syscall] = struct{}{}
+			} else {
+				delete(syscallMap, syscall)
+			}
 		}
 	}
 
@@ -99,7 +112,27 @@ func limit(syscallFilter string, action seccomp.Action) error {
 //   https://www.freedesktop.org/software/systemd/man/systemd.exec.html#System%20Call%20Filtering
 //
 // The filter acts as an allow list. Thus, every other syscall results in the
-// whole processes being killed.
+// termination of the process and its children. One can remove single syscalls
+// or smaller sets again by prefixing them with a tilde (~). As the set of
+// allowed syscalls is created by parsing the words from left to right, one
+// should start with building the allow list and reducing it afterwards.
+//
+// A small subset of syscalls (@default) is always allowed. Thus, when calling
+// with an empty string, a very strict filter is applied, not even allowing
+// using stdin or stdout.
+//
+// A simple example with systemd's wide @system-service might be:
+//
+//   @system-service
+//
+// Allowing some IO and file system access might be achieved through:
+//
+//   @basic-io @file-system @io-event
+//
+// To restrict a wider set might be used like the following:
+//
+//   @system-service ~@process ~@setuid
+//
 func LimitTo(syscallFilter string) error {
 	return limit(syscallFilter, seccomp.ActionKillProcess)
 }
