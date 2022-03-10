@@ -6,6 +6,8 @@
 
 pkgs.mkShell {
   buildInputs = with pkgs; [
+    audit
+    cowsay
     go_1_17
     golangci-lint
     reuse
