@@ -1,0 +1,41 @@
+# SPDX-FileCopyrightText: 2022 Alvar Penning
+#
+# SPDX-License-Identifier: BSD-3-Clause
+
+name: CI
+
+on: [push, pull_request]
+
+jobs:
+  golang:
+    name: Check Go code
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - uses: actions/setup-go@v2
+      with:
+        go-version: '1.17'
+
+    - run: go version
+    - run: go build ./...
+
+    - uses: golangci/golangci-lint-action@v3
+      with:
+        skip-pkg-cache: true
+        skip-build-cache: true
+
+    - run: ./test/test.sh
+
+  reuse:
+    name: Check REUSE compliance
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - uses: fsfe/reuse-action@v1
+

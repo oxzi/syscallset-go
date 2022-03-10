@@ -4,17 +4,13 @@
 #
 # SPDX-License-Identifier: BSD-3-Clause
 
-# This test script executes every Go integration test (tm) within the test
-# directory and errors if it does not exit with the expected exit code, defined
-# as TEST_ERRORS.
+# This test script executes every Go integration test (tm) within the
+# subdirectories and errors if it does not exit with the expected exit code,
+# defined as TEST_ERRORS.
 
-set -u
-
-for f in "$(dirname "$0")"/*.go; do
-  export "$(grep "TEST_ERRORS" "$f" | sed -E 's/\/{2}\s*(.*)$/\1/g')"
-
-  go run "$f" > /dev/null 2>&1
-  [[ "$?" -eq "$TEST_ERRORS" ]] || { echo "$f failed"; exit 1; }
-
-  unset TEST_ERRORS
+for d in "$(dirname "$0")"/*/; do
+  echo -n "${d} "
+  go run "${d}/test.go" > /dev/null 2>&1
+  [[ "$?" -eq "$(sed -n -E 's/.*TEST_ERRORS=([01])$/\1/p' "${d}/test.go")" ]] \
+    && echo "good" || { echo "fail"; exit 1; }
 done
