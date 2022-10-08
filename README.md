@@ -95,6 +95,17 @@ Then, just use the generator tool.
 $ go run generator/gen.go generator/go.tmpl > syscalls.go
 ```
 
+As systemd's userland applications are sufficient, one can use Docker to update the list to a recent version:
+
+```
+user@host $ docker pull archlinux:latest
+user@host $ docker run -it --rm -v "$PWD":/app archlinux
+root@container # pacman -Syu go
+root@container # cd /app
+root@container # go run generator/gen.go generator/go.tmpl > syscalls.go
+root@container # ^D
+```
+
 
 ## Security Implications
 

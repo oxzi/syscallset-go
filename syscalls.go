@@ -13,7 +13,7 @@
 // - https://github.com/systemd/systemd/blob/main/src/shared/seccomp-util.c
 // - https://github.com/systemd/systemd/blob/main/src/analyze/analyze-syscall-filter.c
 
-// Generated based on systemd 250 (250.3-4-arch)
+// Generated based on systemd 251 (251.5-1-arch)
 
 package syscallset
 
@@ -274,6 +274,33 @@ var syscallSets = map[string][]string{
 		"request_key",
 	},
 	"known": []string{
+		"_sysctl",
+		"afs_syscall",
+		"bdflush",
+		"break",
+		"create_module",
+		"ftime",
+		"get_kernel_syms",
+		"getpmsg",
+		"gtty",
+		"idle",
+		"lock",
+		"mpx",
+		"prof",
+		"profil",
+		"putpmsg",
+		"query_module",
+		"security",
+		"sgetmask",
+		"ssetmask",
+		"stime",
+		"stty",
+		"sysfs",
+		"tuxcall",
+		"ulimit",
+		"uselib",
+		"ustat",
+		"vserver",
 		"_llseek",
 		"_newselect",
 		"_sysctl",
@@ -743,6 +770,7 @@ var syscallSets = map[string][]string{
 		"sendmsg",
 		"sendto",
 		"set_mempolicy",
+		"set_mempolicy_home_node",
 		"set_robust_list",
 		"set_thread_area",
 		"set_tid_address",
