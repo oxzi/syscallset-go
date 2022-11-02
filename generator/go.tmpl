@@ -20,7 +20,7 @@ package syscallset
 var syscallSets = map[string][]string{
 {{- range $setName, $syscalls := .SyscallSets }}
 	"{{ $setName }}": []string{
-		{{- range $syscall := $syscalls }}
+		{{- range $syscall, $_ := $syscalls }}
 		{{ $syscall | printf "%q," }}
 		{{- end }}
 	},

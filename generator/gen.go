@@ -30,7 +30,7 @@ type syscallFilterParser struct {
 	scanner *bufio.Scanner
 
 	err  error
-	sets map[string][]string
+	sets map[string]map[string]bool
 }
 
 // nextLine for processing or an error. Commented lines are being skipped.
@@ -56,7 +56,7 @@ func (parser *syscallFilterParser) nextLine() (string, error) {
 // parseSet from the output and store it within the parser's sets.
 func (parser *syscallFilterParser) parseSet() {
 	var setName string
-	var setSyscalls []string
+	var setSyscalls map[string]bool
 
 	reSetName := regexp.MustCompile(`^@([a-z-]+)$`)
 	reSyscall := regexp.MustCompile(`^\s+(@?[a-z0-9-_]+)$`)
@@ -85,6 +85,8 @@ func (parser *syscallFilterParser) parseSet() {
 		}
 	}
 
+	setSyscalls = make(map[string]bool)
+
 	// Now parse all syscalls.
 	for {
 		if syscallLine, err := parser.nextLine(); err != nil {
@@ -97,14 +99,14 @@ func (parser *syscallFilterParser) parseSet() {
 			parser.err = fmt.Errorf("expected syscall, got %q", syscallLine)
 			return
 		} else {
-			setSyscalls = append(setSyscalls, syscall[1])
+			setSyscalls[syscall[1]] = true
 		}
 	}
 }
 
 // syscallFilters from `systemd-analyze syscall-filter` as a map of the set's
 // name pointing to an array of syscalls and/or other sets.
-func syscallFilters() (map[string][]string, error) {
+func syscallFilters() (map[string]map[string]bool, error) {
 	out, err := exec.Command("systemd-analyze", "syscall-filter").Output()
 	if err != nil {
 		return nil, err
@@ -112,7 +114,7 @@ func syscallFilters() (map[string][]string, error) {
 
 	parser := &syscallFilterParser{
 		scanner: bufio.NewScanner(bytes.NewBuffer(out)),
-		sets:    make(map[string][]string),
+		sets:    make(map[string]map[string]bool),
 	}
 
 	for parser.err == nil {
@@ -127,8 +129,8 @@ func syscallFilters() (map[string][]string, error) {
 
 // syscallSetFlatten removes the internal references from one set to another.
 // Thus, the output map's value will only contain the names of syscalls.
-func syscallSetFlatten(in map[string][]string) (out map[string][]string, err error) {
-	out = make(map[string][]string)
+func syscallSetFlatten(in map[string]map[string]bool) (out map[string]map[string]bool, err error) {
+	out = make(map[string]map[string]bool)
 
 	for setName, setSyscalls := range in {
 		tmpSyscalls := setSyscalls
@@ -140,18 +142,20 @@ func syscallSetFlatten(in map[string][]string) (out map[string][]string, err err
 		for nestedCheck := true; nestedCheck; {
 			nestedCheck = false
 
-			var outSyscalls []string
-			for _, syscall := range tmpSyscalls {
+			outSyscalls := make(map[string]bool)
+			for syscall, _ := range tmpSyscalls {
 				if strings.HasPrefix(syscall, "@") {
-					if nestedSet, nestedSetExist := in[syscall[1:]]; !nestedSetExist {
+					if nestedSetSyscalls, nestedSetExist := in[syscall[1:]]; !nestedSetExist {
 						err = fmt.Errorf("referenced set %q does not exist", syscall)
 						return
 					} else {
-						outSyscalls = append(outSyscalls, nestedSet...)
+						for nestedSyscall, _ := range nestedSetSyscalls {
+							outSyscalls[nestedSyscall] = true
+						}
 						nestedCheck = true
 					}
 				} else {
-					outSyscalls = append(outSyscalls, syscall)
+					outSyscalls[syscall] = true
 				}
 			}
 			tmpSyscalls = outSyscalls
@@ -166,23 +170,19 @@ func syscallSetFlatten(in map[string][]string) (out map[string][]string, err err
 // syscallSetMoveExecve from the default set to process.
 // This syscall is obviously needed for systemd to spawn another process, but
 // otherwise would not be expected in a default set.
-func syscallSetMoveExecve(syscallSets map[string][]string) error {
-	defaultSet := syscallSets["default"]
-	pos := -1
+func syscallSetMoveExecve(syscallSets map[string]map[string]bool) error {
+	defaultSet, defaultOk := syscallSets["default"]
+	processSet, processOk := syscallSets["process"]
 
-	for i := 0; i < len(defaultSet); i++ {
-		if defaultSet[i] == "execve" {
-			pos = i
-			break
-		}
+	if !defaultOk || !processOk {
+		return fmt.Errorf("set is missing; default = %t, process = %t", defaultOk, processOk)
 	}
 
-	if pos < 0 {
-		return fmt.Errorf("execve syscall not found in @default set")
-	}
+	delete(defaultSet, "execve")
+	processSet["execve"] = true
 
-	syscallSets["default"] = append(defaultSet[:pos], defaultSet[pos+1:]...)
-	syscallSets["process"] = append(syscallSets["process"], "execve")
+	syscallSets["default"] = defaultSet
+	syscallSets["process"] = processSet
 	return nil
 }
 
@@ -229,7 +229,7 @@ func main() {
 	// Generate output and write back to stdout
 	tmplVars := struct {
 		SystemdVersionStr string
-		SyscallSets       map[string][]string
+		SyscallSets       map[string]map[string]bool
 	}{
 		SystemdVersionStr: systemdVersionStr,
 		SyscallSets:       syscallSets,
