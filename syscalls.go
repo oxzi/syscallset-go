@@ -13,7 +13,7 @@
 // - https://github.com/systemd/systemd/blob/main/src/shared/seccomp-util.c
 // - https://github.com/systemd/systemd/blob/main/src/analyze/analyze-syscall-filter.c
 
-// Generated based on systemd 251 (251.7-1-arch)
+// Generated based on systemd 252 (252.1-1-arch)
 
 package syscallset
 
@@ -79,6 +79,7 @@ var syscallSets = map[string][]string{
 		"pidfd_getfd",
 		"ptrace",
 		"rtas",
+		"s390_runtime_instr",
 		"sys_debug_setcontext",
 	},
 	"default": []string{
@@ -1004,6 +1005,8 @@ var syscallSets = map[string][]string{
 		"pivot_root",
 		"quotactl",
 		"reboot",
+		"s390_pci_mmio_read",
+		"s390_pci_mmio_write",
 		"setdomainname",
 		"setfsuid",
 		"setfsuid32",
@@ -1052,6 +1055,8 @@ var syscallSets = map[string][]string{
 		"pciconfig_iobase",
 		"pciconfig_read",
 		"pciconfig_write",
+		"s390_pci_mmio_read",
+		"s390_pci_mmio_write",
 	},
 	"reboot": []string{
 		"kexec_file_load",
