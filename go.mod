@@ -4,7 +4,7 @@
 
 module github.com/oxzi/syscallset-go
 
-go 1.17
+go 1.19
 
 require (
 	github.com/elastic/go-seccomp-bpf v1.2.0
