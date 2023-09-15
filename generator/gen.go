@@ -58,8 +58,11 @@ func (parser *syscallFilterParser) parseSet() {
 	var setName string
 	var setSyscalls map[string]bool
 
-	reSetName := regexp.MustCompile(`^@([a-z-]+)$`)
-	reSyscall := regexp.MustCompile(`^\s+(@?[a-z0-9-_]+)$`)
+	var (
+		reComment = regexp.MustCompile(`^\s+#.*$`)
+		reSetName = regexp.MustCompile(`^@([a-z-]+)$`)
+		reSyscall = regexp.MustCompile(`^\s+(\x1b\[[0-?]*[ -/]*[@-~])?(@?[a-z0-9-_]+)$`)
+	)
 
 	// Store the parsed data afterwards.
 	defer func() {
@@ -71,36 +74,47 @@ func (parser *syscallFilterParser) parseSet() {
 
 	// First, parse the set's name.
 	for {
-		if nameLine, err := parser.nextLine(); err != nil {
+		nameLine, err := parser.nextLine()
+		if err != nil {
 			parser.err = err
 			return
-		} else if nameLine == "" {
+		}
+		if nameLine == "" || reComment.MatchString(nameLine) {
 			continue
-		} else if name := reSetName.FindStringSubmatch(nameLine); len(name) == 0 {
+		}
+
+		name := reSetName.FindStringSubmatch(nameLine)
+		if len(name) == 0 {
 			parser.err = fmt.Errorf("expected set name, got %q", nameLine)
 			return
-		} else {
-			setName = name[1]
-			break
 		}
+		setName = name[1]
+		break
 	}
 
 	setSyscalls = make(map[string]bool)
 
 	// Now parse all syscalls.
 	for {
-		if syscallLine, err := parser.nextLine(); err != nil {
+		syscallLine, err := parser.nextLine()
+		if err != nil {
 			parser.err = err
 			return
-		} else if syscallLine == "" {
+		}
+		if syscallLine == "" {
 			// Reached an empty line; end of set.
 			return
-		} else if syscall := reSyscall.FindStringSubmatch(syscallLine); len(syscall) == 0 {
+		}
+		if reComment.MatchString(syscallLine) {
+			continue
+		}
+
+		syscall := reSyscall.FindStringSubmatch(syscallLine)
+		if len(syscall) == 0 {
 			parser.err = fmt.Errorf("expected syscall, got %q", syscallLine)
 			return
-		} else {
-			setSyscalls[syscall[1]] = true
 		}
+		setSyscalls[syscall[2]] = true
 	}
 }
 

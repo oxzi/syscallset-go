@@ -13,7 +13,7 @@
 // - https://github.com/systemd/systemd/blob/main/src/shared/seccomp-util.c
 // - https://github.com/systemd/systemd/blob/main/src/analyze/analyze-syscall-filter.c
 
-// Generated based on systemd 252 (252.1-1-arch)
+// Generated based on systemd 254 (254.3-1-arch)
 
 package syscallset
 
@@ -96,6 +96,7 @@ var syscallSets = map[string][]string{
 		"exit_group",
 		"futex",
 		"futex_time64",
+		"futex_waitv",
 		"get_robust_list",
 		"get_thread_area",
 		"getegid",
@@ -131,6 +132,7 @@ var syscallSets = map[string][]string{
 		"prlimit64",
 		"restart_syscall",
 		"riscv_flush_icache",
+		"riscv_hwprobe",
 		"rseq",
 		"rt_sigreturn",
 		"sched_getaffinity",
@@ -300,6 +302,7 @@ var syscallSets = map[string][]string{
 		"brk",
 		"cachectl",
 		"cacheflush",
+		"cachestat",
 		"capget",
 		"capset",
 		"chdir",
@@ -713,6 +716,7 @@ var syscallSets = map[string][]string{
 		"request_key",
 		"restart_syscall",
 		"riscv_flush_icache",
+		"riscv_hwprobe",
 		"rmdir",
 		"rseq",
 		"rt_sigaction",
@@ -1004,6 +1008,7 @@ var syscallSets = map[string][]string{
 		"pciconfig_write",
 		"pivot_root",
 		"quotactl",
+		"quotactl_fd",
 		"reboot",
 		"s390_pci_mmio_read",
 		"s390_pci_mmio_write",
@@ -1074,8 +1079,15 @@ var syscallSets = map[string][]string{
 		"sched_setparam",
 		"sched_setscheduler",
 		"set_mempolicy",
+		"set_mempolicy_home_node",
 		"setpriority",
 		"setrlimit",
+	},
+	"sandbox": []string{
+		"landlock_add_rule",
+		"landlock_create_ruleset",
+		"landlock_restrict_self",
+		"seccomp",
 	},
 	"setuid": []string{
 		"setgid",
@@ -1131,6 +1143,7 @@ var syscallSets = map[string][]string{
 		"add_key",
 		"alarm",
 		"arch_prctl",
+		"arm_fadvise64_64",
 		"bind",
 		"brk",
 		"cacheflush",
@@ -1200,6 +1213,7 @@ var syscallSets = map[string][]string{
 		"ftruncate64",
 		"futex",
 		"futex_time64",
+		"futex_waitv",
 		"futimesat",
 		"get_mempolicy",
 		"get_robust_list",
@@ -1358,6 +1372,7 @@ var syscallSets = map[string][]string{
 		"request_key",
 		"restart_syscall",
 		"riscv_flush_icache",
+		"riscv_hwprobe",
 		"rmdir",
 		"rseq",
 		"rt_sigaction",
@@ -1395,6 +1410,7 @@ var syscallSets = map[string][]string{
 		"sendmsg",
 		"sendto",
 		"set_mempolicy",
+		"set_mempolicy_home_node",
 		"set_robust_list",
 		"set_thread_area",
 		"set_tid_address",
