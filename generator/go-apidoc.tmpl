@@ -1,0 +1,21 @@
+// SPDX-FileCopyrightText: Alvar Penning
+//
+// SPDX-License-Identifier: BSD-3-Clause
+
+// DO NOT EDIT DIRECTLY!
+
+// Package syscallset is an easy to use Go library allowing any Go program to
+// restrict its own capabilities on Linux through seccomp-bpf and predefined
+// syscall sets from systemd.
+//
+// To self-limit a Go application, use this package's LimitTo or LimitAndLog
+// functions.
+//
+// The following syscall groups from systemd are available:
+//
+{{- range $setName, $set := .SyscallSets }}
+//	- {{ $setName }}: {{ $set.Description }}
+{{- end }}
+//
+package syscallset
+

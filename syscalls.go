@@ -18,6 +18,7 @@
 package syscallset
 
 var syscallSets = map[string][]string{
+	// aio: Asynchronous IO
 	"aio": []string{
 		"io_cancel",
 		"io_destroy",
@@ -30,6 +31,7 @@ var syscallSets = map[string][]string{
 		"io_uring_register",
 		"io_uring_setup",
 	},
+	// basic-io: Basic IO
 	"basic-io": []string{
 		"_llseek",
 		"close",
@@ -49,6 +51,7 @@ var syscallSets = map[string][]string{
 		"write",
 		"writev",
 	},
+	// chown: Change ownership of files and directories
 	"chown": []string{
 		"chown",
 		"chown32",
@@ -58,6 +61,7 @@ var syscallSets = map[string][]string{
 		"lchown",
 		"lchown32",
 	},
+	// clock: Change the system time
 	"clock": []string{
 		"adjtimex",
 		"clock_adjtime",
@@ -66,6 +70,7 @@ var syscallSets = map[string][]string{
 		"clock_settime64",
 		"settimeofday",
 	},
+	// cpu-emulation: System calls for CPU emulation functionality
 	"cpu-emulation": []string{
 		"modify_ldt",
 		"subpage_prot",
@@ -73,6 +78,7 @@ var syscallSets = map[string][]string{
 		"vm86",
 		"vm86old",
 	},
+	// debug: Debugging, performance monitoring and tracing functionality
 	"debug": []string{
 		"lookup_dcookie",
 		"perf_event_open",
@@ -82,6 +88,7 @@ var syscallSets = map[string][]string{
 		"s390_runtime_instr",
 		"sys_debug_setcontext",
 	},
+	// default: System calls that are always permitted
 	"default": []string{
 		"arch_prctl",
 		"brk",
@@ -145,6 +152,7 @@ var syscallSets = map[string][]string{
 		"time",
 		"ugetrlimit",
 	},
+	// file-system: File system operations
 	"file-system": []string{
 		"access",
 		"chdir",
@@ -223,6 +231,7 @@ var syscallSets = map[string][]string{
 		"utimensat_time64",
 		"utimes",
 	},
+	// io-event: Event loop system calls
 	"io-event": []string{
 		"_newselect",
 		"epoll_create",
@@ -242,6 +251,7 @@ var syscallSets = map[string][]string{
 		"pselect6_time64",
 		"select",
 	},
+	// ipc: SysV IPC, POSIX Message Queues or other IPC
 	"ipc": []string{
 		"ipc",
 		"memfd_create",
@@ -272,11 +282,13 @@ var syscallSets = map[string][]string{
 		"shmdt",
 		"shmget",
 	},
+	// keyring: Kernel keyring access
 	"keyring": []string{
 		"add_key",
 		"keyctl",
 		"request_key",
 	},
+	// known: All known syscalls declared in the kernel
 	"known": []string{
 		"_llseek",
 		"_newselect",
@@ -890,6 +902,7 @@ var syscallSets = map[string][]string{
 		"write",
 		"writev",
 	},
+	// memlock: Memory locking control
 	"memlock": []string{
 		"mlock",
 		"mlock2",
@@ -897,11 +910,13 @@ var syscallSets = map[string][]string{
 		"munlock",
 		"munlockall",
 	},
+	// module: Loading and unloading of kernel modules
 	"module": []string{
 		"delete_module",
 		"finit_module",
 		"init_module",
 	},
+	// mount: Mounting and unmounting of file systems
 	"mount": []string{
 		"chroot",
 		"fsconfig",
@@ -916,6 +931,7 @@ var syscallSets = map[string][]string{
 		"umount",
 		"umount2",
 	},
+	// network-io: Network or Unix socket IO, should not be needed if not network facing
 	"network-io": []string{
 		"accept",
 		"accept4",
@@ -940,6 +956,7 @@ var syscallSets = map[string][]string{
 		"socketcall",
 		"socketpair",
 	},
+	// obsolete: Unusual, obsolete or unimplemented system calls
 	"obsolete": []string{
 		"_sysctl",
 		"afs_syscall",
@@ -969,11 +986,13 @@ var syscallSets = map[string][]string{
 		"ustat",
 		"vserver",
 	},
+	// pkey: System calls used for memory protection keys
 	"pkey": []string{
 		"pkey_alloc",
 		"pkey_free",
 		"pkey_mprotect",
 	},
+	// privileged: All system calls which need super-user capabilities
 	"privileged": []string{
 		"_sysctl",
 		"acct",
@@ -1029,6 +1048,7 @@ var syscallSets = map[string][]string{
 		"swapon",
 		"vhangup",
 	},
+	// process: Process control, execution, namespacing operations
 	"process": []string{
 		"capget",
 		"clone",
@@ -1054,6 +1074,7 @@ var syscallSets = map[string][]string{
 		"waitid",
 		"waitpid",
 	},
+	// raw-io: Raw I/O port access
 	"raw-io": []string{
 		"ioperm",
 		"iopl",
@@ -1063,11 +1084,13 @@ var syscallSets = map[string][]string{
 		"s390_pci_mmio_read",
 		"s390_pci_mmio_write",
 	},
+	// reboot: Reboot and reboot preparation/kexec
 	"reboot": []string{
 		"kexec_file_load",
 		"kexec_load",
 		"reboot",
 	},
+	// resources: Alter resource settings
 	"resources": []string{
 		"ioprio_set",
 		"mbind",
@@ -1083,12 +1106,14 @@ var syscallSets = map[string][]string{
 		"setpriority",
 		"setrlimit",
 	},
+	// sandbox: Sandbox functionality
 	"sandbox": []string{
 		"landlock_add_rule",
 		"landlock_create_ruleset",
 		"landlock_restrict_self",
 		"seccomp",
 	},
+	// setuid: Operations for changing user/group credentials
 	"setuid": []string{
 		"setgid",
 		"setgid32",
@@ -1105,6 +1130,7 @@ var syscallSets = map[string][]string{
 		"setuid",
 		"setuid32",
 	},
+	// signal: Process signal handling
 	"signal": []string{
 		"rt_sigaction",
 		"rt_sigpending",
@@ -1121,10 +1147,12 @@ var syscallSets = map[string][]string{
 		"sigprocmask",
 		"sigsuspend",
 	},
+	// swap: Enable/disable swap devices
 	"swap": []string{
 		"swapoff",
 		"swapon",
 	},
+	// sync: Synchronize files and memory to storage
 	"sync": []string{
 		"fdatasync",
 		"fsync",
@@ -1134,6 +1162,7 @@ var syscallSets = map[string][]string{
 		"sync_file_range2",
 		"syncfs",
 	},
+	// system-service: General system service operations
 	"system-service": []string{
 		"_llseek",
 		"_newselect",
@@ -1510,6 +1539,7 @@ var syscallSets = map[string][]string{
 		"write",
 		"writev",
 	},
+	// timer: Schedule operations by time
 	"timer": []string{
 		"alarm",
 		"getitimer",

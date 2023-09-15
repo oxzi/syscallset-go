@@ -18,9 +18,10 @@
 package syscallset
 
 var syscallSets = map[string][]string{
-{{- range $setName, $syscalls := .SyscallSets }}
+{{- range $setName, $set := .SyscallSets }}
+	// {{ $setName }}: {{ $set.Description }}
 	"{{ $setName }}": []string{
-		{{- range $syscall, $_ := $syscalls }}
+		{{- range $syscall, $_ := $set.Syscalls }}
 		{{ $syscall | printf "%q," }}
 		{{- end }}
 	},

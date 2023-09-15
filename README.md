@@ -103,6 +103,7 @@ user@host $ docker run -it --rm -v "$PWD":/app archlinux
 root@container # pacman -Syu go
 root@container # cd /app
 root@container # go run generator/gen.go generator/go.tmpl > syscalls.go
+root@container # go run generator/gen.go generator/go-apidoc.tmpl > syscallset.go
 root@container # ^D
 ```
 

@@ -25,43 +25,47 @@ import (
 	"text/template"
 )
 
+// SyscallFilterGroup describes a systemd sysgroup filter by its
+// description and syscalls (as a map[string]bool; name in key).
+type SyscallFilterGroup struct {
+	Description string
+	Syscalls    map[string]bool
+}
+
 // syscallFilterParser for `systemd-analyze syscall-filter`.
 type syscallFilterParser struct {
 	scanner *bufio.Scanner
 
 	err  error
-	sets map[string]map[string]bool
+	sets map[string]SyscallFilterGroup
 }
 
-// nextLine for processing or an error. Commented lines are being skipped.
+// nextLine for processing or an error.
 func (parser *syscallFilterParser) nextLine() (string, error) {
-	reComment := regexp.MustCompile(`^\s*#.*`)
-
-	for {
-		if parser.scanner.Scan() {
-			line := parser.scanner.Text()
-			if !reComment.MatchString(line) {
-				return line, nil
-			}
-		} else {
-			err := parser.scanner.Err()
-			if err == nil {
-				err = io.EOF
-			}
-			return "", err
-		}
+	if parser.scanner.Scan() {
+		return parser.scanner.Text(), nil
 	}
+
+	err := parser.scanner.Err()
+	if err == nil {
+		err = io.EOF
+	}
+	return "", err
 }
 
 // parseSet from the output and store it within the parser's sets.
 func (parser *syscallFilterParser) parseSet() {
-	var setName string
-	var setSyscalls map[string]bool
+	var (
+		setName        string
+		setDescription string
+		setSyscalls    map[string]bool
+	)
 
 	var (
-		reComment = regexp.MustCompile(`^\s+#.*$`)
-		reSetName = regexp.MustCompile(`^@([a-z-]+)$`)
-		reSyscall = regexp.MustCompile(`^\s+(\x1b\[[0-?]*[ -/]*[@-~])?(@?[a-z0-9-_]+)$`)
+		reComment     = regexp.MustCompile(`^\s*#.*$`)
+		reSetName     = regexp.MustCompile(`^@([a-z-]+)$`)
+		reDescription = regexp.MustCompile(`^\s+# (.*)$`)
+		reSyscall     = regexp.MustCompile(`^\s+(\x1b\[[0-?]*[ -/]*[@-~])?(@?[a-z0-9-_]+)$`)
 	)
 
 	// Store the parsed data afterwards.
@@ -69,7 +73,10 @@ func (parser *syscallFilterParser) parseSet() {
 		if parser.err != nil {
 			return
 		}
-		parser.sets[setName] = setSyscalls
+		parser.sets[setName] = SyscallFilterGroup{
+			Description: setDescription,
+			Syscalls:    setSyscalls,
+		}
 	}()
 
 	// First, parse the set's name.
@@ -92,9 +99,22 @@ func (parser *syscallFilterParser) parseSet() {
 		break
 	}
 
-	setSyscalls = make(map[string]bool)
+	// The description follows
+	descriptionLine, err := parser.nextLine()
+	if err != nil {
+		parser.err = err
+		return
+	}
+	description := reDescription.FindStringSubmatch(descriptionLine)
+	if len(description) == 0 {
+		parser.err = fmt.Errorf("expected set description, got %q", descriptionLine)
+		return
+	}
+	setDescription = description[1]
 
 	// Now parse all syscalls.
+	setSyscalls = make(map[string]bool)
+
 	for {
 		syscallLine, err := parser.nextLine()
 		if err != nil {
@@ -120,7 +140,7 @@ func (parser *syscallFilterParser) parseSet() {
 
 // syscallFilters from `systemd-analyze syscall-filter` as a map of the set's
 // name pointing to an array of syscalls and/or other sets.
-func syscallFilters() (map[string]map[string]bool, error) {
+func syscallFilters() (map[string]SyscallFilterGroup, error) {
 	out, err := exec.Command("systemd-analyze", "syscall-filter").Output()
 	if err != nil {
 		return nil, err
@@ -128,7 +148,7 @@ func syscallFilters() (map[string]map[string]bool, error) {
 
 	parser := &syscallFilterParser{
 		scanner: bufio.NewScanner(bytes.NewBuffer(out)),
-		sets:    make(map[string]map[string]bool),
+		sets:    make(map[string]SyscallFilterGroup),
 	}
 
 	for parser.err == nil {
@@ -143,11 +163,11 @@ func syscallFilters() (map[string]map[string]bool, error) {
 
 // syscallSetFlatten removes the internal references from one set to another.
 // Thus, the output map's value will only contain the names of syscalls.
-func syscallSetFlatten(in map[string]map[string]bool) (out map[string]map[string]bool, err error) {
-	out = make(map[string]map[string]bool)
+func syscallSetFlatten(in map[string]SyscallFilterGroup) (out map[string]SyscallFilterGroup, err error) {
+	out = make(map[string]SyscallFilterGroup)
 
-	for setName, setSyscalls := range in {
-		tmpSyscalls := setSyscalls
+	for setName, setGroup := range in {
+		tmpSyscalls := setGroup.Syscalls
 
 		// If one set refers to another, do another check as this could also point
 		// to a third one. This code might result in an infinite loop, but I am
@@ -159,11 +179,11 @@ func syscallSetFlatten(in map[string]map[string]bool) (out map[string]map[string
 			outSyscalls := make(map[string]bool)
 			for syscall, _ := range tmpSyscalls {
 				if strings.HasPrefix(syscall, "@") {
-					if nestedSetSyscalls, nestedSetExist := in[syscall[1:]]; !nestedSetExist {
+					if nestedGroupSyscalls, nestedSetExist := in[syscall[1:]]; !nestedSetExist {
 						err = fmt.Errorf("referenced set %q does not exist", syscall)
 						return
 					} else {
-						for nestedSyscall, _ := range nestedSetSyscalls {
+						for nestedSyscall, _ := range nestedGroupSyscalls.Syscalls {
 							outSyscalls[nestedSyscall] = true
 						}
 						nestedCheck = true
@@ -175,28 +195,32 @@ func syscallSetFlatten(in map[string]map[string]bool) (out map[string]map[string
 			tmpSyscalls = outSyscalls
 		}
 
-		out[setName] = tmpSyscalls
+		out[setName] = SyscallFilterGroup{
+			Description: in[setName].Description,
+			Syscalls:    tmpSyscalls,
+		}
 	}
 
 	return
 }
 
 // syscallSetMoveExecve from the default set to process.
+//
 // This syscall is obviously needed for systemd to spawn another process, but
 // otherwise would not be expected in a default set.
-func syscallSetMoveExecve(syscallSets map[string]map[string]bool) error {
-	defaultSet, defaultOk := syscallSets["default"]
-	processSet, processOk := syscallSets["process"]
+func syscallSetMoveExecve(syscallSets map[string]SyscallFilterGroup) error {
+	defaultGroup, defaultOk := syscallSets["default"]
+	processGroup, processOk := syscallSets["process"]
 
 	if !defaultOk || !processOk {
 		return fmt.Errorf("set is missing; default = %t, process = %t", defaultOk, processOk)
 	}
 
-	delete(defaultSet, "execve")
-	processSet["execve"] = true
+	delete(defaultGroup.Syscalls, "execve")
+	processGroup.Syscalls["execve"] = true
 
-	syscallSets["default"] = defaultSet
-	syscallSets["process"] = processSet
+	// syscallSets["default"] = defaultSet
+	// syscallSets["process"] = processSet
 	return nil
 }
 
@@ -243,7 +267,7 @@ func main() {
 	// Generate output and write back to stdout
 	tmplVars := struct {
 		SystemdVersionStr string
-		SyscallSets       map[string]map[string]bool
+		SyscallSets       map[string]SyscallFilterGroup
 	}{
 		SystemdVersionStr: systemdVersionStr,
 		SyscallSets:       syscallSets,

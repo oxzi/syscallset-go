@@ -117,10 +117,11 @@ func IsSupported() bool {
 // filter string.
 //
 // A filter string might contain both syscall sets, prefixed by an at sign (@),
-// as well as single syscalls by their name. The list of syscall sets can be
-// fetched from systemd's exec documentation:
+// as well as single syscalls by their name. The list of syscall sets is either
+// available in this package's main documentation or can be  fetched from
+// systemd's exec documentation:
 //
-//   https://www.freedesktop.org/software/systemd/man/systemd.exec.html#System%20Call%20Filtering
+//	https://www.freedesktop.org/software/systemd/man/systemd.exec.html#System%20Call%20Filtering
 //
 // The filter acts as an allow list. Thus, every other syscall results in the
 // termination of the process and its children. One can remove single syscalls
@@ -134,16 +135,15 @@ func IsSupported() bool {
 //
 // A simple example with systemd's wide @system-service might be:
 //
-//   @system-service
+//	@system-service
 //
 // Allowing some IO and file system access might be achieved through:
 //
-//   @basic-io @file-system @io-event
+//	@basic-io @file-system @io-event
 //
 // To restrict a wider set might be used like the following:
 //
-//   @system-service ~@process ~@setuid
-//
+//	@system-service ~@process ~@setuid
 func LimitTo(syscallFilter string) error {
 	return limit(syscallFilter, seccomp.ActionKillProcess)
 }
