@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2022 Alvar Penning
+# SPDX-FileCopyrightText: Alvar Penning
 #
 # SPDX-License-Identifier: BSD-3-Clause
 
