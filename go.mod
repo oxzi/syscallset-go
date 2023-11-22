@@ -6,7 +6,7 @@ module github.com/oxzi/syscallset-go
 
 go 1.19
 
-require github.com/elastic/go-seccomp-bpf v1.3.0
+require github.com/elastic/go-seccomp-bpf v1.4.0
 
 require (
 	golang.org/x/net v0.15.0 // indirect
