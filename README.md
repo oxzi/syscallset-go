@@ -93,6 +93,7 @@ Then, just use the generator tool.
 
 ```
 $ go run generator/gen.go generator/go.tmpl > syscalls.go
+$ go run generator/gen.go generator/go-apidoc.tmpl > syscallset.go
 ```
 
 As systemd's userland applications are sufficient, one can use Docker to update the list to a recent version:
