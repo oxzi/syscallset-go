@@ -12,20 +12,21 @@ jobs:
 
     runs-on: ubuntu-latest
 
+    strategy:
+      matrix:
+        go: [ 'oldstable', 'stable' ]
+
     steps:
     - uses: actions/checkout@v4
 
     - uses: actions/setup-go@v5
       with:
-        go-version: '1.21'
+        go-version: ${{ matrix.go }}
 
     - run: go version
     - run: go build ./...
 
-    - uses: golangci/golangci-lint-action@v3
-      with:
-        skip-pkg-cache: true
-        skip-build-cache: true
+    - uses: golangci/golangci-lint-action@v6
 
     - run: ./test/test.sh
 
@@ -37,5 +38,4 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - uses: fsfe/reuse-action@v2
-
+    - uses: fsfe/reuse-action@v5
