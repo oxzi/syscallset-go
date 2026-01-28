@@ -49,18 +49,18 @@ func unwrapSyscalls(syscallFilter string) (syscalls []string, err error) {
 		var tmpSyscalls []string
 
 		if obj[0] == '@' {
-			// For a set, filter unsupported syscalls first.
-			set, setExist := syscallSets[obj[1:]]
-			if !setExist {
+			var exists bool
+			tmpSyscalls, exists = syscallSets[obj[1:]]
+			if !exists {
 				return nil, fmt.Errorf("syscall set %q does not exist", obj)
 			}
-
-			if tmpSyscalls, err = filterUnsupportedSyscalls(set); err != nil {
-				return
-			}
 		} else {
-			// Do not filter for single syscalls, as this should error.
 			tmpSyscalls = []string{obj}
+		}
+
+		// Filter out unsupported syscalls on this architecture.
+		if tmpSyscalls, err = filterUnsupportedSyscalls(tmpSyscalls); err != nil {
+			return
 		}
 
 		for _, syscall := range tmpSyscalls {
@@ -131,6 +131,9 @@ func IsSupported() bool {
 // A small subset of syscalls (@default) is always allowed. Thus, when calling
 // with an empty string, a very strict filter is applied, not even allowing
 // using stdin or stdout.
+//
+// Unknown syscalls are being ignored, as they might only be supported on other
+// architectures. However, unknown syscall sets will result in an error.
 //
 // A simple example with systemd's wide @system-service might be:
 //
